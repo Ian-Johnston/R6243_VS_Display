@@ -37,10 +37,6 @@ extern char ADA_BUY[5];
 
 // Function prototypes
 void DisplayMain(void);
-//void DisplayAuxFirstHalf(void);
-//void DisplayAuxSecondHalf(void);
-//void DisplayAnnunciatorsHalf(void);
-
 void DisplaySplash(void);
 void DisplayAux(void);
 void DisplayAnnunciators(void);
@@ -48,10 +44,12 @@ void DisplayAnnunciators(void);
 // Settings suited for 400x960 TFT LCD (320x960 physical)
 #define Xpos_MAIN				182			// These are actually the Y position on the R6243 because LCD is rotated 90deg in use. Values in pixels.
 #define Xpos_AUX				280
+#define Ypos_AUX				60
 #define Xpos_ANNUNC				150
 #define Xpos_SPLASH				326			// org 330
-#define Xpos_TIMINGS			138
 #define Ypos_SPLASH				160
+#define Xpos_TIMINGS			138
+#define Ypos_TIMINGS			640
 
 
 #endif // DISPLAY_H

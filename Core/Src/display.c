@@ -251,15 +251,9 @@ void DisplayAux() {
 		}
 	}
 	
-	
-	
 	aux_dollarCount = dollarCount;
 	for (int i = 0; i < 5; i++) aux_dollarPositions[i] = dollarPositions[i];
 	for (int i = 0; i < 30; i++) aux_string_dbg[i] = AuxdisplayString[i]; // includes '\0' somewhere
-
-	
-	
-	
 
 	uint16_t yposohm = 0; // Initialize y-position for OHM symbol
 	uint16_t yposoffset = 60; // Initialize y-position for OHM symbol
@@ -334,40 +328,7 @@ void DisplayAux() {
 	// If no $ symbols were found, print the entire string as-is	
 
 	if (dollarCount == 0) {
-		
-		
-		// 6243 testing
-		//DrawText(AuxdisplayString);
-
-		
-
-		// Detect 1000mV Range
-		//if ((strstr(MaindisplayString, "OVERLOAD") == NULL) &&			// does not contain
-		//	(strpbrk(MaindisplayString, "0123456789") != NULL) &&		// does contain
-		//	(strstr(AuxdisplayString, "1000mV Range") != NULL)) {		// does contain
-		//	onethousandmVmodedetected = true;
-		//} else {
-		//	onethousandmVmodedetected = false;
-		//	oneVoltmode = false;
-		//}
-		//if ((strstr(AuxdisplayString, "1000mV Range") != NULL)) {		// does contain
-		//	onethousandmVmodedetected = true;
-		//}
-		//else {
-		//	onethousandmVmodedetected = false;
-			//oneVoltmode = false;
-		//}
-
-		// If in 1000mV range and user has enabled the new 1VDC mode
-		//if (oneVoltmode && onethousandmVmodedetected) {
-		//	yposohm = 60;
-		//}
-		//else {
-		//	yposohm = 60;
-		//}
-		
-		yposohm = 60;
-
+	
 		ConfigureFontAndPosition(
 			0b00,    // Internal CGROM
 			0b01,    // Font size
@@ -380,7 +341,7 @@ void DisplayAux() {
 			5,       // Line spacing
 			0,       // Character spacing
 			Xpos_AUX,     // Cursor X
-			yposohm       // Cursor Y
+			Ypos_AUX      // Cursor Y
 		);
 
 		// If in 1000mV range and user has enabled the new 1VDC mode
@@ -515,7 +476,7 @@ void DisplaySplash() {
 				1,       // Line spacing
 				4,       // Character spacing
 				Xpos_TIMINGS,     // Cursor X			// org 130
-				640      // Cursor Y
+				Ypos_TIMINGS      // Cursor Y
 			);
 			char text2[] = "                        ";
 			DrawText(text2);
@@ -555,7 +516,7 @@ void DisplaySplash() {
 				1,       // Line spacing
 				4,       // Character spacing
 				Xpos_TIMINGS,     // Cursor X			// org 130
-				640      // Cursor Y
+				Ypos_TIMINGS      // Cursor Y
 			);
 			char textsettings[128]; // Ensure the buffer is large enough
 			snprintf(textsettings, sizeof(textsettings),

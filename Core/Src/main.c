@@ -17,6 +17,7 @@
   ******************************************************************************
 */
 
+
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
@@ -676,23 +677,19 @@ int main(void) {
 
 				DisplaySplash();
 
-				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
-				Delay_NonBlocking(6);  // Wait ms in a non-blocking way
+				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 
 				DisplayMain();
 
-				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
-				Delay_NonBlocking(6);  // Wait ms in a non-blocking way
+				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 
 				DisplayAux();
 
-				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
-				Delay_NonBlocking(6);  // Wait ms in a non-blocking way
+				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 
 				DisplayAnnunciators();
 
-				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
-				Delay_NonBlocking(6);  // Wait ms in a non-blocking way
+				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 
 				// Right wipe
 				DrawLine(0, 959, 399, 959, 0x00, 0x00, 0x00);	// far right hand vertical line, black, 1 pixel line. (this line hidden!)
@@ -711,7 +708,6 @@ int main(void) {
 				//DrawLine(0, 959, 399, 959, 0xFF, 0xFF, 0xFF);	// far right
 				//DrawLine(199, 0, 199, 959, 0xFF, 0x00, 0x00);	// centred on R6243 horizontally
 
-				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 				Delay_NonBlocking(6);  // Wait 6ms in a non-blocking way
 
 				// Wait until SPI1 finishes any ongoing transactions
@@ -774,28 +770,28 @@ int main(void) {
 
 							// run startup subs again to apply new settings
 							AdaFruit_Init();
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 							LT7680_PLL_Initial_LT();
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 							LCD_Horizontal_Non_Display_LT(LCD_HBPD);  // Horizontal Back Porch
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 							LCD_HSYNC_Start_Position_LT(LCD_HFPD);    // HSYNC Start Position
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 							LCD_HSYNC_Pulse_Width_LT(LCD_HSPW);       // HSYNC Pulse Width
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 							LCD_Vertical_Non_Display_LT(LCD_VBPD);    // Vertical Back Porch
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 							LCD_VSYNC_Start_Position_LT(LCD_VFPD);    // VSYNC Start Position
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 							LCD_VSYNC_Pulse_Width_LT(LCD_VSPW);       // VSYNC Pulse Width
-							//HAL_Delay(5);
+
 							Delay_NonBlocking(5);  // Wait ms in a non-blocking way
 
 							EEPROM_ErasePage(EEPROM_START_ADDRESS) == HAL_OK;		// Erase Flash
@@ -832,7 +828,6 @@ int main(void) {
 						char text1[] = "TFT LCD Timing Adjust";
 						DrawText(text1);
 
-						//HAL_Delay(6);
 						Delay_NonBlocking(6);  // Wait ms in a non-blocking way
 
 						SetTextColors(0xFFFFFF, 0x000000); // Foreground: green, Background: Black
@@ -853,7 +848,6 @@ int main(void) {
 						char text2[] = "Hit GP-IB LOCAL to cycle round new TFT LCD settings";
 						DrawText(text2);
 
-						//HAL_Delay(6);
 						Delay_NonBlocking(6);  // Wait ms in a non-blocking way
 
 						ConfigureFontAndPosition(
@@ -873,7 +867,6 @@ int main(void) {
 						char text3[] = "Power cycle may be necessary to achieve full effect";
 						DrawText(text3);
 
-						//HAL_Delay(6);
 						Delay_NonBlocking(6);  // Wait ms in a non-blocking way
 
 						ConfigureFontAndPosition(
@@ -893,7 +886,6 @@ int main(void) {
 						char text4[] = "        VBPD VFPD VSPW HBPD HFPD HSPW REFR COG";
 						DrawText(text4);
 
-						//HAL_Delay(6);
 						Delay_NonBlocking(6);  // Wait ms in a non-blocking way
 
 						SetTextColors(0xFFFF00, 0x000000); // Foreground: Yellow, Background: Black
@@ -925,7 +917,6 @@ int main(void) {
 						);
 						DrawText(redefineValuesCurr);
 
-						//HAL_Delay(6);
 						Delay_NonBlocking(6);  // Wait ms in a non-blocking way
 
 						if (isFirstPress == false) {
@@ -960,7 +951,6 @@ int main(void) {
 						}
 
 						// Delay for button
-						//HAL_Delay(120);
 						Delay_NonBlocking(120);  // Wait ms in a non-blocking way
 
 					}
