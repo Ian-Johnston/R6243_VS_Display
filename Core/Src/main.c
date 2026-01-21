@@ -542,8 +542,7 @@ int main(void) {
 
 	HAL_Delay(10);
 
-	// Main loop timer
-	SetTimerDuration(35);			// 35 ms timed action set
+	SetTimerDuration(35);			// Main loop timer - 35 ms timed action set
 
 	HAL_Delay(5);
 	ConfigurePWMAndSetBrightness(BACKLIGHTFULL);  // Configure Timer-1 and PWM-1 for backlighting. Settable 0-100%
