@@ -627,6 +627,15 @@ int main(void) {
 		AdaFruit_Init(); // Default - Initialize AdaFruit driver
 	}
 
+	// Right wipe to clear random pixels down the far right hand side
+	DrawLine(0, 959, 399, 959, 0x00, 0x00, 0x00);	// far right hand vertical line, black, 1 pixel line. (this line hidden!)
+	DrawLine(0, 958, 399, 958, 0x00, 0x00, 0x00);	// (this line hidden!)
+	DrawLine(0, 957, 399, 957, 0x00, 0x00, 0x00);
+	DrawLine(0, 956, 399, 956, 0x00, 0x00, 0x00);
+	DrawLine(0, 955, 399, 955, 0x00, 0x00, 0x00);
+	DrawLine(0, 954, 399, 954, 0x00, 0x00, 0x00);
+	DrawLine(0, 953, 399, 953, 0x00, 0x00, 0x00);
+	DrawLine(0, 952, 399, 952, 0x00, 0x00, 0x00);
 	
 //**************************************************************************************************
 // Main loop initialize
@@ -673,6 +682,7 @@ int main(void) {
 				NVIC_DisableIRQ(DMA1_Channel5_IRQn);
 
 				//HAL_GPIO_TogglePin(GPIOC, TEST_OUT_Pin); // Test LED toggle
+				GPIOC->ODR ^= TEST_OUT_Pin;		// faster write, bypasses HAL
 
 				DisplaySplash();
 
@@ -690,15 +700,15 @@ int main(void) {
 
 				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 
-				// Right wipe
-				DrawLine(0, 959, 399, 959, 0x00, 0x00, 0x00);	// far right hand vertical line, black, 1 pixel line. (this line hidden!)
-				DrawLine(0, 958, 399, 958, 0x00, 0x00, 0x00);	// (this line hidden!)
-				DrawLine(0, 957, 399, 957, 0x00, 0x00, 0x00);
-				DrawLine(0, 956, 399, 956, 0x00, 0x00, 0x00);
-				DrawLine(0, 955, 399, 955, 0x00, 0x00, 0x00);
-				DrawLine(0, 954, 399, 954, 0x00, 0x00, 0x00);
-				DrawLine(0, 953, 399, 953, 0x00, 0x00, 0x00);
-				DrawLine(0, 952, 399, 952, 0x00, 0x00, 0x00);
+				// Right wipe to clear random pixels down the far right hand side - This may be required to run continiously
+				//DrawLine(0, 959, 399, 959, 0x00, 0x00, 0x00);	// far right hand vertical line, black, 1 pixel line. (this line hidden!)
+				//DrawLine(0, 958, 399, 958, 0x00, 0x00, 0x00);	// (this line hidden!)
+				//DrawLine(0, 957, 399, 957, 0x00, 0x00, 0x00);
+				//DrawLine(0, 956, 399, 956, 0x00, 0x00, 0x00);
+				//DrawLine(0, 955, 399, 955, 0x00, 0x00, 0x00);
+				//DrawLine(0, 954, 399, 954, 0x00, 0x00, 0x00);
+				//DrawLine(0, 953, 399, 953, 0x00, 0x00, 0x00);
+				//DrawLine(0, 952, 399, 952, 0x00, 0x00, 0x00);
 
 				// Test only - 400pixel based test lines for viewing the centre line and the left, middle and far right positions.
 				// The internal memory is set up as 400x960 but the leftmost 80 pixels are considered overscan and don't show up, thus 320
