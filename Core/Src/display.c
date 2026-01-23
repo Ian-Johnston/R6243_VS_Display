@@ -24,9 +24,11 @@
 #define TIMER_INTERVAL_MS 35 // The interval of your timed sub in milliseconds
 
 // Display colours default
-uint32_t MainColourFore = 0xFFFF00; // Yellow
-uint32_t AuxColourFore = 0xFFFFFF; // White
-uint32_t AnnunColourFore = 0x00FF00; // Green
+uint32_t MainColourFore = 0xFFFF00;		// Yellow
+uint32_t AuxColourFore = 0xFFFFFF;		// White
+uint32_t AnnunColourFore = 0x00FF00;	// Green
+uint32_t ColourBackground = 0x000000;	// Black
+uint32_t ColourBlackFore = 0x000000;	// Black
 
 static void CheckDisplayStatus(void);
 
@@ -34,13 +36,6 @@ _Bool onethousandmVmodedetected;
 char MaindisplayString[19] = "";              // String for G[1] to G[18]
 _Bool displayBlank = false;
 _Bool displayBlankPrevious = false;
-
-//float test15 = 0;
-//char test16[12];
-
-
-//uint16_t dollarPositionAUX = 0xFFFF;
-
 
 // 6243 testing
 volatile int aux_dollarCount = 0;
@@ -55,13 +50,15 @@ volatile char aux_string_dbg[30] = { 0 };
 void DisplayMain() {
 
 	// MAIN ROW - Print text to LCD
-	SetTextColors(MainColourFore, 0x000000); // Foreground, Background
+	SetTextColors(MainColourFore, ColourBackground); // Foreground, Background
 
-	char MaindisplayStringStd[19] = "";
+	char MaindisplayStringStd[19] = "";					// String for G[1] to G[18]
+	
+	// Populate MaindisplayStringStd from G[1] to G[18]
 	for (int i = 1; i <= 18; i++) {
 		MaindisplayStringStd[i - 1] = G[i];
 	}
-	MaindisplayStringStd[18] = '\0';
+	MaindisplayStringStd[18] = '\0';					// Null-terminate at the 19th position because array starts at 0
 
 	// draw G[1]..G[18]
 	ConfigureFontAndPosition(
@@ -121,14 +118,15 @@ void DisplayAux() {
 
 	// AUX ROW text to LCD
 
-	SetTextColors(AuxColourFore, 0x000000); // Foreground, Background
+	SetTextColors(AuxColourFore, ColourBackground); // Foreground, Background
 
-	char AuxdisplayString[30] = "";               // String for G[19] to G[47]
+	char AuxdisplayString[30] = "";						// String for G[19] to G[47]
+	
 	// Populate AuxdisplayString from G[19] to G[47]
 	for (int i = 19; i <= 47; i++) {
 		AuxdisplayString[i - 19] = G[i];
 	}
-	AuxdisplayString[29] = '\0'; // Null-terminate at the 30th position because array starts at 0
+	AuxdisplayString[29] = '\0';						// Null-terminate at the 30th position because array starts at 0
 
 	ConfigureFontAndPosition(
 		0b00,    // Internal CGROM
@@ -162,7 +160,7 @@ void DisplayAnnunciators() {
 	};
 
 
-	// Set Y-position of the annunciators
+	// Set Y-position of the various annunciators
 	int AnnuncYCoords[19] = {
 		10,   // SMPL
 		62,   // IDLE
@@ -187,7 +185,7 @@ void DisplayAnnunciators() {
 
 	for (int i = 0; i < 18; i++) {
 		if (Annunc[i + 1] == 1) {  // Turn the annunciator ON
-			SetTextColors(AnnunColourFore, 0x000000); // Foreground: Green, Background: Black
+			SetTextColors(AnnunColourFore, ColourBackground); // Foreground: Green, Background: Black
 			ConfigureFontAndPosition(
 				0b00,    // Internal CGROM
 				0b00,    // 16-dot font size
@@ -205,7 +203,7 @@ void DisplayAnnunciators() {
 			DrawText(AnnuncNames[i]); // Print the corresponding name
 		}
 		else {  // Turn the annunciator OFF
-			SetTextColors(0x000000, 0x000000); // Foreground: Black, Background: Black
+			SetTextColors(ColourBlackFore, ColourBackground); // Foreground: Black, Background: Black
 			ConfigureFontAndPosition(
 				0b00,    // Internal CGROM
 				0b00,    // 16-dot font size
@@ -239,7 +237,7 @@ void DisplaySplash() {
 		if (cycle_count >= (DURATION_MS / TIMER_INTERVAL_MS)) {
 			// Runs once
 			timer_active = 0; // Stop counting after 5 seconds
-			SetTextColors(0x00FF00, 0x000000); // Foreground: Yellow, Background: Black
+			SetTextColors(0x00FF00, ColourBackground); // Foreground: Yellow, Background: Black
 			ConfigureFontAndPosition(
 				0b00,    // Internal CGROM
 				0b00,    // Font size
@@ -257,7 +255,7 @@ void DisplaySplash() {
 			char text[] = "                                                           ";
 			DrawText(text);
 
-			SetTextColors(0xFF0000, 0x000000); // Foreground: Yellow, Background: Black
+			SetTextColors(0xFF0000, ColourBackground); // Foreground: Yellow, Background: Black
 			ConfigureFontAndPosition(
 				0b00,    // Internal CGROM
 				0b00,    // Font size
@@ -279,7 +277,7 @@ void DisplaySplash() {
 		else {
 			// Perform operations within the 5-second window
 			// Splash text
-			SetTextColors(0x00FF00, 0x000000); // Foreground: Yellow, Background: Black
+			SetTextColors(0x00FF00, ColourBackground); // Foreground: Yellow, Background: Black
 			ConfigureFontAndPosition(
 				0b00,    // Internal CGROM
 				0b00,    // Font size
@@ -297,7 +295,7 @@ void DisplaySplash() {
 			char text[] = "Serial decode by MickleT / TFT LCD by Ian Johnston";
 			DrawText(text);
 
-			SetTextColors(0x909090, 0x000000); // Foreground: grey, Background: Black
+			SetTextColors(0x909090, ColourBackground); // Foreground: grey, Background: Black
 			ConfigureFontAndPosition(
 				0b00,    // Internal CGROM
 				0b00,    // Font size
