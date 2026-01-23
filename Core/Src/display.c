@@ -54,141 +54,33 @@ volatile char aux_string_dbg[30] = { 0 };
 
 void DisplayMain() {
 
-	// This sub needs re-written in the same way the AUX line is now written - it's on the todo list.
-
-	// MAIN ROW - Print text to LCD, detect if there is an OHM symbol ($) and if so split into 3 parts, before-OHM-after
+	// MAIN ROW - Print text to LCD
 	SetTextColors(MainColourFore, 0x000000); // Foreground, Background
 
-	//char MaindisplayString[19] = "";              // String for G[1] to G[18]
-	char BeforeDollar[19] = "";                   // To store characters before the $
-	char AfterDollar[19] = "";                    // To store characters after the $
-	uint16_t dollarPosition = 0xFFFF;            // Initialize to an invalid position
-
-	// Populate MaindisplayString from G[1] to G[18]
+	char MaindisplayStringStd[19] = "";
 	for (int i = 1; i <= 18; i++) {
-		MaindisplayString[i - 1] = G[i];
+		MaindisplayStringStd[i - 1] = G[i];
 	}
-	MaindisplayString[18] = '\0';                 // Null-terminate MaindisplayString
+	MaindisplayStringStd[18] = '\0';
 
-	// Find the position of the '$' symbol
-	for (int i = 0; i < 18; i++) {
-		if (MaindisplayString[i] == '$') {
-			dollarPosition = i;                   // Record the position of '$'
-			break;                                // Exit loop once found
-		}
-	}
+	// draw G[1]..G[18]
+	ConfigureFontAndPosition(
+		0b00,    // Internal CGROM
+		0b10,    // Font size
+		0b00,    // ISO 8859-1
+		0,       // Full alignment enabled
+		0,       // Chroma keying disabled
+		1,       // Rotate 90 degrees counterclockwise
+		0b10,    // Width multiplier
+		0b10,    // Height multiplier
+		1,       // Line spacing
+		4,       // Character spacing
+		Xpos_MAIN,
+		0);
 
-	// If in 2W or 4W Resistance measurement mode the display will contain the OHM symbol on the MAIN display.
-	// If it appears then the dollarPositionAUX var will not be 0xFFFF
-	if (dollarPosition != 0xFFFF) {
+	DrawText(MaindisplayStringStd);
 
-		// $ symbol found
-		// Before
-		ConfigureFontAndPosition(
-			0b00,    // Internal CGROM
-			0b10,    // Font size
-			0b00,    // ISO 8859-1
-			0,       // Full alignment enabled
-			0,       // Chroma keying disabled
-			1,       // Rotate 90 degrees counterclockwise
-			0b10,    // Width multiplier
-			0b10,    // Height multiplier
-			1,       // Line spacing
-			4,       // Character spacing
-			Xpos_MAIN,      // Cursor X
-			0        // Cursor Y
-		);
-		char MaindisplayStringBefore[19] = "";
-		for (int i = 1; i <= 18; i++) {
-			if (G[i] == '$') break;
-			MaindisplayStringBefore[i - 1] = G[i];
-		}
-		DrawText(MaindisplayStringBefore);
-
-		//HAL_Delay(5);
-		Delay_NonBlocking(5);  // Wait ms in a non-blocking way
-
-		ResetGraphicWritePosition_LT();
-		Ohms16x32SymbolStoreUCG();			// This is called here rather than pre-defined because the 2nd UCG below is a different size
-		Text_Mode();
-
-		// Ohm Symbol
-		// Calculate position of $ symbol
-		//       yposohm = (dollarPosition * widthmultiplier * fontwidth) + (characterspacing * dollarPosition) + startoffset(6)
-		uint16_t yposohm = (dollarPosition * 3 * 16) + (4 * dollarPosition);  // Y position of the OHM symbol
-		// The actual OHM
-		ConfigureFontAndPosition(
-			0b10,    // User-Defined Font mode
-			0b10,    // Font size
-			0b00,    // ISO 8859-1
-			0,       // Full alignment enabled
-			0,       // Chroma keying disabled
-			1,       // Rotate 90 degrees counterclockwise
-			0b10,    // Width multiplier
-			0b10,    // Height multiplier
-			1,       // Line spacing
-			4,       // Character spacing
-			Xpos_MAIN,      // Cursor X 170
-			yposohm  // Cursor Y 480	780
-		);
-		// Write the OHM symbol
-		WriteRegister(0x04);
-		WriteData(0x00);    // high byte
-		WriteData(0x00);    // low byte
-
-		//HAL_Delay(2);
-		Delay_NonBlocking(2);  // Wait ms in a non-blocking way
-
-		// After
-		ConfigureFontAndPosition(
-			0b00,    // Internal CGROM
-			0b10,    // Font size
-			0b00,    // ISO 8859-1
-			0,       // Full alignment enabled
-			0,       // Chroma keying disabled
-			1,       // Rotate 90 degrees counterclockwise
-			0b10,    // Width multiplier
-			0b10,    // Height multiplier
-			1,       // Line spacing
-			4,       // Character spacing
-			Xpos_MAIN,      // Cursor X
-			(dollarPosition * 52) + 52        // Cursor Y	832
-		);
-		char MaindisplayStringAfter[19] = ""; // Adjust the size to match your max expected characters
-		int j = 0; // Index for the new string
-		for (int i = dollarPosition + 1; i <= 18; i++) { // Start after the $ and loop through the rest
-			MaindisplayStringAfter[j++] = MaindisplayString[i]; // Copy characters to the new string
-		}
-		MaindisplayStringAfter[18] = '\0'; // Null-terminate the new string
-		DrawText(MaindisplayStringAfter);
-
-	} else {
-
-		// Standard non-OHM mode (6243): just draw G[1]..G[18]
-		ConfigureFontAndPosition(
-		    0b00,    // Internal CGROM
-			0b10,    // Font size
-			0b00,    // ISO 8859-1
-			0,       // Full alignment enabled
-			0,       // Chroma keying disabled
-			1,       // Rotate 90 degrees counterclockwise
-			0b10,    // Width multiplier
-			0b10,    // Height multiplier
-			1,       // Line spacing
-			4,       // Character spacing
-			Xpos_MAIN,
-			0);
-
-		char MaindisplayStringStd[19] = "";
-		for (int i = 1; i <= 18; i++) {
-			MaindisplayStringStd[i - 1] = G[i];
-		}
-		MaindisplayStringStd[18] = '\0';
-		DrawText(MaindisplayStringStd);
-
-		CheckDisplayStatus();		
-
-	}
+	CheckDisplayStatus();		
 
 }
 
@@ -232,127 +124,29 @@ void DisplayAux() {
 	SetTextColors(AuxColourFore, 0x000000); // Foreground, Background
 
 	char AuxdisplayString[30] = "";               // String for G[19] to G[47]
-	uint16_t dollarPositions[5] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF }; // To store positions of up to 5 $
-	int dollarCount = 0; // Count of $ symbols found
-
-	// Customizable fudge factors for each $ symbol position
-	//int fudgeFactors[5] = { 23, 23, 32, 104 }; // Adjust these values for each $ symbol's position
-
 	// Populate AuxdisplayString from G[19] to G[47]
 	for (int i = 19; i <= 47; i++) {
 		AuxdisplayString[i - 19] = G[i];
 	}
 	AuxdisplayString[29] = '\0'; // Null-terminate at the 30th position because array starts at 0
 
-	// Find positions of up to 5 $ symbols
-	for (int i = 0; i < 30 && dollarCount < 5; i++) {
-		if (AuxdisplayString[i] == '$') {
-			dollarPositions[dollarCount++] = i; // Store position and increment count
-		}
-	}
-	
-	aux_dollarCount = dollarCount;
-	for (int i = 0; i < 5; i++) aux_dollarPositions[i] = dollarPositions[i];
-	for (int i = 0; i < 30; i++) aux_string_dbg[i] = AuxdisplayString[i]; // includes '\0' somewhere
+	ConfigureFontAndPosition(
+		0b00,    // Internal CGROM
+		0b01,    // Font size
+		0b00,    // ISO 8859-1
+		0,       // Full alignment enabled
+		0,       // Chroma keying disabled
+		1,       // Rotate 90 degrees counterclockwise
+		0b01,    // Width multiplier
+		0b01,    // Height multiplier
+		5,       // Line spacing
+		0,       // Character spacing
+		Xpos_AUX,     // Cursor X
+		Ypos_AUX      // Cursor Y
+	);
 
-	uint16_t yposohm = 0; // Initialize y-position for OHM symbol
-	uint16_t yposoffset = 60; // Initialize y-position for OHM symbol
+	DrawText(AuxdisplayString);
 
-	if (dollarCount != 0) {
-
-		// Process text and OHM symbols based on dollarCount
-		for (int d = 0; d <= dollarCount; d++) {
-			// Calculate start and end positions for text
-			int start = (d == 0) ? 0 : dollarPositions[d - 1] + 1;
-			int end = (d < dollarCount) ? dollarPositions[d] : 30;
-
-			// Print text before or between $ symbols
-			if (start < end) {
-				char AuxdisplaySegment[30] = "";
-				for (int i = start; i < end; i++) {
-					AuxdisplaySegment[i - start] = AuxdisplayString[i];
-				}
-				AuxdisplaySegment[end - start] = '\0'; // Null-terminate
-
-				ConfigureFontAndPosition(
-					0b00,    // Internal CGROM
-					0b01,    // Font size
-					0b00,    // ISO 8859-1
-					0,       // Full alignment enabled
-					0,       // Chroma keying disabled
-					1,       // Rotate 90 degrees counterclockwise
-					0b01,    // Width multiplier
-					0b01,    // Height multiplier
-					1,       // Line spacing
-					0,       // Character spacing
-					Xpos_AUX,     // Cursor X
-					yposohm = yposoffset + (start * 12 * 2) // Dynamically adjust position, offset + (position * 12 pixel width character * 2)
-				);
-				DrawText(AuxdisplaySegment);
-			}
-
-			//HAL_Delay(5);
-			Delay_NonBlocking(5);  // Wait ms in a non-blocking way
-
-			ResetGraphicWritePosition_LT();
-			Ohms12x24SymbolStoreUCG(); // This is called here rather than pre-defined because the 1st UCG above is a different size
-			Text_Mode();
-
-			// Print OHM symbol if within dollarCount
-			if (d < dollarCount) {
-				uint16_t calculated_value = (dollarPositions[d] * 12 * 2);		// 12 pixel width character * 2
-				yposohm = yposoffset + (uint16_t)calculated_value;
-
-				ConfigureFontAndPosition(
-					0b10,    // User-Defined Font mode
-					0b01,    // Font size
-					0b00,    // ISO 8859-1
-					0,       // Full alignment enabled
-					0,       // Chroma keying disabled
-					1,       // Rotate 90 degrees counterclockwise
-					0b01,    // Width multiplier
-					0b01,    // Height multiplier
-					1,       // Line spacing
-					0,       // Character spacing
-					Xpos_AUX,     // Cursor X
-					yposohm  // Cursor Y
-				);
-				WriteRegister(0x04);
-				WriteData(0x00);    // high byte
-				WriteData(0x00);    // low byte
-			}
-		}
-
-	}
-
-	// If no $ symbols were found, print the entire string as-is	
-
-	if (dollarCount == 0) {
-	
-		ConfigureFontAndPosition(
-			0b00,    // Internal CGROM
-			0b01,    // Font size
-			0b00,    // ISO 8859-1
-			0,       // Full alignment enabled
-			0,       // Chroma keying disabled
-			1,       // Rotate 90 degrees counterclockwise
-			0b01,    // Width multiplier
-			0b01,    // Height multiplier
-			5,       // Line spacing
-			0,       // Character spacing
-			Xpos_AUX,     // Cursor X
-			Ypos_AUX      // Cursor Y
-		);
-
-		// If in 1000mV range and user has enabled the new 1VDC mode
-		//if (oneVoltmode && onethousandmVmodedetected) {
-		//	DrawText("   1 V Range                 ");
-		//}
-		//else {
-		DrawText(AuxdisplayString);
-		//}
-
-	}
 }
 
 
