@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// SPI handle (ensure this matches your actual SPI instance)
+// SPI handle (ensure this matches actual SPI instance)
 extern SPI_HandleTypeDef hspi1;
 
 char LT7680StatusMessages[8][50]; // 8 messages, each up to 50 characters long
@@ -50,9 +50,6 @@ void HardwareReset(void) {
     HAL_Delay(100); // Delay 100 ms
 }
 
-
-//#define RESET_LOW()  HAL_GPIO_WritePin(RESET_PORT, RESET_PIN, GPIO_PIN_RESET)
-//#define RESET_HIGH() HAL_GPIO_WritePin(RESET_PORT, RESET_PIN, GPIO_PIN_SET)
 
 //**************************************************************************************************
 // Core commands
@@ -113,7 +110,7 @@ void WriteDataToRegister(uint8_t reg, uint8_t value) {
 
 
 //**************************************************************************************************
-// Subs to run and sent to the LT7680
+// Subs to run and send to the LT7680
 
 void SendAllToLT7680_LT() {
   
@@ -172,70 +169,8 @@ void SendAllToLT7680_LT() {
     HAL_Delay(5);
    
     Text_Mode();
-    ClearScreen();                          // Draws black 'spaces' across the whole screen - fast
+    ClearScreen();                            // Draws black 'spaces' across the whole screen - fast
     
-}
-
-
-void SendAllToLT7680_LT_2() {
-
-    //Software_Reset_LT();
-    //HAL_Delay(10);
-    //LT7680_PLL_Initial_LT();                  // Initialize PLL first for stable clocks
-    //HAL_Delay(100);
-    //SDRAM_Init_LT();                          // Initialize SDRAM after the reset
-    //HAL_Delay(5);
-
-    //Set_LCD_Panel_LT();                       // Set up the panel interface
-    //HAL_Delay(100);
-
-    //WriteRegister(0x84);                      // Set backlighting Prescaler to zero which effectively turns off backlighting
-    //WriteData(0x00); // Prescaler = 00
-    //HAL_Delay(5);
-
-    //LCDConfigTurnOn_LT();
-    //HAL_Delay(5);
-
-    //LCD_HorizontalWidth_VerticalHeight_LT(LCD_XSIZE_TFT, LCD_YSIZE_TFT);
-    HAL_Delay(5);
-    //LCD_Horizontal_Non_Display_LT(LCD_HBPD);  // Horizontal Back Porch ###
-    HAL_Delay(5);
-    //LCD_HSYNC_Start_Position_LT(LCD_HFPD);    // HSYNC Start Position
-    HAL_Delay(5);
-    //LCD_HSYNC_Pulse_Width_LT(LCD_HSPW);       // HSYNC Pulse Width
-    HAL_Delay(5);
-    //LCD_Vertical_Non_Display_LT(LCD_VBPD);    // Vertical Back Porch
-    HAL_Delay(5);
-    //LCD_VSYNC_Start_Position_LT(LCD_VFPD);    // VSYNC Start Position
-    HAL_Delay(5);
-    //LCD_VSYNC_Pulse_Width_LT(LCD_VSPW);       // VSYNC Pulse Width
-    HAL_Delay(5);
-    //SetColorDepth_LT();                       // Configure canvas color depth
-    HAL_Delay(5);
-    //Configure_Main_PIP_Window_LT();
-    HAL_Delay(5);
-    //SetMainImageWidth_LT();
-    HAL_Delay(5);
-    //SetMainWindowUpperLeftX_LT();
-    HAL_Delay(5);
-    //ConfigureActiveDisplayArea_LT();
-    HAL_Delay(5);
-    //SetActiveWindow_LT();                     // Set active window dimensions
-    HAL_Delay(5);
-    //SetCanvasStartAddress_LT();
-    HAL_Delay(5);
-    //SetCanvasImageWidth_LT();
-    HAL_Delay(5);
-    //ResetGraphicWritePosition_LT();
-    HAL_Delay(5);
-    //SetGraphicRWYCoordinate_LT();
-    HAL_Delay(5);
-    //Set_MISA_LT();                            // Configure the Main Image Start Address
-    HAL_Delay(5);
-
-    Text_Mode();
-    ClearScreen();                          // Draws black 'spaces' across the whole screen - fast
-
 }
 
 
@@ -299,117 +234,6 @@ void DrawLine(uint16_t startX, uint16_t startY, uint16_t endX, uint16_t endY, ui
 }
 
 
-
-
-
-// UGC symbol - 16x32
-void Ohms16x32SymbolStoreUCG() {
-    // CGRAM_START_ADDR 0x1000  // Base address for CGRAM
-    // UGC_CODE 0x0000 // UGC code for 16/32 & 12x24 OHM symbols
-    // CGRAM ADDR + (UGC_CODE * 64);  // Calculate UCG address for 16x32
-
-    // 16x32 UCG data for the Ohm symbol
-    // written to 1000h
-    uint8_t ohm[64] = {
-        0x00, 0x00,  // Row 1:  0000000000000000        // UCG code = 0000h
-        0x00, 0x00,  // Row 2:  0000000000000000
-        0x00, 0x00,  // Row 3:  0000000000000000
-        0x00, 0x00,  // Row 4:  0000000000000000
-        0x00, 0x00,  // Row 5:  0000000000000000
-        0x00, 0x00,  // Row 6:  0000000000000000
-        0x0F, 0xF0,  // Row 7:  0000111111110000
-        0x1F, 0xF8,  // Row 8:  0001111111111000
-        0x30, 0x0C,  // Row 9:  0011000000001100
-        0x60, 0x06,  // Row 10: 0110000000000110
-        0x60, 0x06,  // Row 11: 0110000000000110
-        0x60, 0x06,  // Row 12: 0110000000000110
-        0x60, 0x06,  // Row 13: 0110000000000110
-        0x60, 0x06,  // Row 14: 0110000000000110
-        0x60, 0x06,  // Row 15: 0110000000000110
-        0x60, 0x06,  // Row 16: 0110000000000110
-        0x60, 0x06,  // Row 17: 0110000000000110
-        0x60, 0x06,  // Row 18: 0110000000000110
-        0x60, 0x06,  // Row 19: 0110000000000110
-        0x30, 0x0C,  // Row 20: 0011000000001100
-        0x18, 0x18,  // Row 21: 0001100000011000
-        0x0C, 0x30,  // Row 22: 0000110000110000
-        0x0C, 0x30,  // Row 23: 0000110000110000
-        0x0C, 0x30,  // Row 24: 0000110000110000
-        0x7C, 0x3E,  // Row 25: 0111110000111110
-        0x7C, 0x3E,  // Row 26: 0111110000111110
-        0x00, 0x00,  // Row 27: 0000000000000000
-        0x00, 0x00,  // Row 28: 0000000000000000
-        0x00, 0x00,  // Row 29: 0000000000000000
-        0x00, 0x00,  // Row 30: 0000000000000000
-        0x00, 0x00,  // Row 31: 0000000000000000
-        0x00, 0x00,  // Row 32: 0000000000000000
-    };
-
-    // Set memory destination for user-characters - 00b user characters
-    WriteRegister(0x03);
-    uint8_t temp = 0;
-    temp |= (0 << 0);
-    temp |= (0 << 1);
-    WriteData(temp);
-
-    for (uint8_t i = 0; i < 64; i++) {
-        WriteRegister(0x04);
-        WriteData(ohm[i]);
-    }
-
-}
-
-
-// UGC symbol - 12x24
-void Ohms12x24SymbolStoreUCG() {
-    // CGRAM_START_ADDR 0x1000  // Base address for CGRAM
-    // UGC_CODE 0x0000 // UGC code for 16/32 & 12x24 OHM symbols
-    // CGRAM ADDR + (UGC_CODE * 48);  // Calculate UCG address for 12x24
-
-    // 12x24 UCG data for the Ohm symbol
-    // written to 1000h
-    uint8_t ohm[48] = {
-        0x00, 0x00,  // Row 1:  000000000000
-        0x00, 0x00,  // Row 2:  000000000000
-        0x00, 0x00,  // Row 3:  000000000000
-        0x00, 0x00,  // Row 4:  000000000000
-        0x00, 0x00,  // Row 5:  000000000000
-        0x07, 0x00,  // Row 6:  000001110000
-        0x0F, 0x80,  // Row 7:  000011111000
-        0x18, 0xC0,  // Row 8:  000110001100
-        0x30, 0x60,  // Row 9:  001100000110
-        0x30, 0x60,  // Row 10: 001100000110
-        0x30, 0x60,  // Row 11: 001100000110
-        0x30, 0x60,  // Row 12: 001100000110
-        0x30, 0x60,  // Row 13: 001100000110
-        0x30, 0x60,  // Row 14: 001100000110
-        0x18, 0xC0,  // Row 15: 000110001100
-        0x0C, 0xC0,  // Row 16: 000011001100
-        0x0C, 0xC0,  // Row 17: 000011001100
-        0x3C, 0xF0,  // Row 18: 011110001111
-        0x3C, 0xF0,  // Row 19: 011110001111
-        0x00, 0x00,  // Row 20: 000000000000
-        0x00, 0x00,  // Row 21: 000000000000
-        0x00, 0x00,  // Row 22: 000000000000
-        0x00, 0x00,  // Row 23: 000000000000
-        0x00, 0x00   // Row 24: 000000000000
-    };
-
-
-    // Set memory destination for user-characters - 00b user characters
-    WriteRegister(0x03);
-    uint8_t temp = 0;
-    temp |= (0 << 0);
-    temp |= (0 << 1);
-    WriteData(temp);
-
-    for (uint8_t i = 0; i < 48; i++) {
-        WriteRegister(0x04);
-        WriteData(ohm[i]);
-    }
-
-}
-
 // Print character to LCD
 void ConfigureFontAndPosition(uint8_t fontSource, uint8_t characterHeight, uint8_t isoCoding, uint8_t fullAlignment, uint8_t chromaKeying, uint8_t rotation, uint8_t widthFactor, uint8_t heightFactor, uint8_t lineGap, uint8_t charSpacing, uint16_t cursorX, uint16_t cursorY) {
 
@@ -468,8 +292,6 @@ void ConfigureFontAndPosition(uint8_t fontSource, uint8_t characterHeight, uint8
     WriteRegister(0x66); // Y upper byte
     WriteData((cursorY >> 8) & 0x1F);
 }
-
-
 
 
 void ClearScreen() {
@@ -679,39 +501,6 @@ void ConfigureActiveDisplayArea_LT() {
     WriteRegister(0x5D); WriteData(((LCD_YSIZE_TFT - 1) >> 8) & 0xFF);  // Y End High
 }
 
-/*
-void SetTextCursor(uint16_t x, uint16_t y) {                             // - OK
-    // Set X-Coordinate
-    WriteRegister(0x63); // Lower 8 bits of X position
-    WriteData(x & 0xFF);
-    WriteRegister(0x64); // Upper 5 bits of X position
-    WriteData((x >> 8) & 0x1F); // Only bits 12:8 are valid
-
-    // Set Y-Coordinate
-    WriteRegister(0x65); // Lower 8 bits of Y position
-    WriteData(y & 0xFF);
-    WriteRegister(0x66); // Upper 5 bits of Y position
-    WriteData((y >> 8) & 0x1F); // Only bits 12:8 are valid
-}
-
-
-
-void DrawText(uint8_t encoding, char *text) {                            // - OK
-    // Set the font encoding in Register 0xCC
-    uint8_t regValue = (encoding & 0x03); // Encoding occupies Bit 1-0
-    WriteRegister(0xCC);
-    WriteData(regValue);
-
-    // Send the text to the display
-    WriteRegister(0x04); // Register for writing text
-    while (*text != '\0') {
-        WriteData((uint8_t)*text);
-        ++text; // Advance to the next character
-    }
-}
-*/
-
-//**************************************************************/
 
 void SoftwareReset(void) {       // From LT7680 datasheet
     // Write to the control register to initiate a software reset
@@ -721,56 +510,6 @@ void SoftwareReset(void) {       // From LT7680 datasheet
     // Optional: Add a delay to ensure the reset completes
     HAL_Delay(100); // 10 ms delay
 }
-
-//**************************************************************/
-
-/*
-void ClearScreen(uint32_t color) {
-    
-	SetBackgroundColor(color);
-    WriteRegister(0x2C); // Memory Write
-
-	
-    for (uint32_t i = 0; i < (320 * 960); i++) {            // NOTE: This is slow, will inhibit startup by a few secs
-        WriteData((color >> 16) & 0xFF); // Red
-        WriteData((color >> 8) & 0xFF);  // Green
-        WriteData(color & 0xFF);         // Blue
-    }
-  
-	
-	uint8_t red = (color >> 16) & 0xFF;
-    uint8_t green = (color >> 8) & 0xFF;
-    uint8_t blue = color & 0xFF;
-
-    WriteRegister(0x01); // Example: Clear Screen Command
-    WriteData(red);
-    WriteData(green);
-    WriteData(blue);
-    
-}
-*/
-
-
-/*
-void SetTextColor(uint32_t color) {
-    uint8_t red = (color >> 16) & 0xFF;
-    uint8_t green = (color >> 8) & 0xFF;
-    uint8_t blue = color & 0xFF;
-
-    WriteRegister(0x02); // Example: Set Text Color Command
-    WriteData(red);
-    WriteData(green);
-    WriteData(blue);
-}
-*/
-
-
-//void SetFont(uint8_t fontIndex) {
-//    WriteRegister(0x03); // Example: Set Font Command
-//    WriteData(fontIndex);
-//}
-
-
 
 
 void SetBacklightFull(void) {
@@ -790,6 +529,7 @@ void SetBacklightFull(void) {
     WriteRegister(0x86); // Enable PWM0
     WriteData(0x01);    // Turn on PWM0
 }
+
 
 // Test routine
 void FillScreen(uint32_t color) {
@@ -843,29 +583,23 @@ void LT7680_PLL_Initial_LT() {
     // Configure PCLK PLL - TFT pixel clock (max=80MHz) (Registers 0x05 and 0x06)
     WriteRegister(0x05);
     WriteData((lpllOD_sclk << 6) | (lpllR_sclk << 1) | ((lpllN_sclk >> 8) & 0x1));      // 8A
-    //WriteData(0x56);          // test
     
     WriteRegister(0x06);
     WriteData(lpllN_sclk & 0xFF);                                                       // 1B
-    //WriteData(0x10);        // test, fixes wierd colour on the "J" on "IanJ" text, but causes flicker
 
     // Configure MCLK PLL - Display memory clock (max=133MHz) (Registers 0x07 and 0x08)
     WriteRegister(0x07);
     WriteData((lpllOD_mclk << 6) | (lpllR_mclk << 1) | ((lpllN_mclk >> 8) & 0x1));      // 8A
-    //WriteData(0x8A);          // test
     
     WriteRegister(0x08);                // 36
     WriteData(lpllN_mclk & 0xFF);                                                       // 36
-    //WriteData(0x56);          // test
 
     // Configure CCLK PLL - Core clock (max=100MHz) (Registers 0x09 and 0x0A)
     WriteRegister(0x09);
     WriteData((lpllOD_cclk << 6) | (lpllR_cclk << 1) | ((lpllN_cclk >> 8) & 0x1));      // 8A
-    //WriteData(0x56);          // test
     
     WriteRegister(0x0A);
     WriteData(lpllN_cclk & 0xFF);                                                       // 36
-    //WriteData(0x56);          // test
 
     // Trigger PLL reconfiguration (Register 0x00)
     WriteRegister(0x00);
@@ -918,7 +652,6 @@ void Configure_Main_PIP_Window_LT() {
     WriteData(regValue2);
 
 }
-
 
 
 // Register 0xE0, 0xE1, 0xE2, 0xE3, 0xE4

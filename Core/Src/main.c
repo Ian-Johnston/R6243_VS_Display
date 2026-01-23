@@ -29,10 +29,10 @@
 #include <stdint.h>
 #include "lt7680.h"
 #include "timer.h"
-#include <stdbool.h>    // bool support, otherwise use _Bool
+#include <stdbool.h>		// bool support, otherwise use _Bool
 #include "display.h"
 #include "stm32f1xx_hal.h"
-#include <stdlib.h>		// required for float (soft FPU)
+#include <stdlib.h>			// required for float (soft FPU)
 
 /* Variables ---------------------------------------------------------*/
 static char main_display_debug[LINE1_LEN + 1]; // Main display debug string
@@ -79,12 +79,6 @@ _Bool AnnuncTemp[37]; // Temp array for annunciators. 18off, the order on LCD le
 // Global variable to store the unmatched bitmap
 uint8_t unmatchedBitmap[FONT_HEIGHT] = { 0 }; // Initialize to zero
 
-void AdaFruit_Init(void);
-void BuyDisplay_Init(void);
-
-
-//******************************************************************************
-
 // SPI receive buffer for packets data
 volatile uint8_t rx_buffer[PACKET_WIDTH * PACKET_COUNT];
 
@@ -114,12 +108,14 @@ volatile uint8_t SPI1_TX_completed_flag = 1;
 // Flag indicating finish of SPI start-up initialization
 volatile uint8_t Init_Completed_flag = 0;
 
-/* Private function prototypes -----------------------------------------------*/
+/* Private function prototypes ------------------------------------------------------------------*/
 void SystemClock_Config(void);
 
 //******************************************************************************
 
 // TFT LCD settings
+void AdaFruit_Init(void);
+void BuyDisplay_Init(void);
 uint32_t boot_LCD_VBPD;
 uint32_t boot_LCD_VFPD;
 uint32_t boot_LCD_VSPW;
@@ -273,7 +269,7 @@ const BitmapChar bitmap_characters[] = {
 	{{0x00, 0x00, 0x09, 0x15, 0x12, 0x00, 0x00}, '~'},  // 0x7E, ~
 	{{0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x00}, '/'},  // forward slash
 	{{0x06, 0x09, 0x09, 0x06, 0x00, 0x00, 0x00}, '°'},	// DegC symbol
-	{{0x0E, 0x11, 0x11, 0x11, 0x11, 0x0A, 0x1B}, '$'},	// Ohm symbol placeholder uses the $ symbol for detection of Ohm symbol - Not used on 6243/4
+	{{0x0E, 0x11, 0x11, 0x11, 0x11, 0x0A, 0x1B}, '$'},	// Ohm symbol placeholder, uses the $ symbol for detection of Ohm symbol - Not used on 6243/4
 	{{0x11, 0x12, 0x14, 0x0B, 0x11, 0x02, 0x03}, '½'},	// half symbol
 	{{0x00, 0x00, 0x04, 0x0E, 0x1F, 0x00, 0x00}, '\x1E'},	// up arrow
 	{{0x00, 0x00, 0x1F, 0x0E, 0x04, 0x00, 0x00}, '\x1F'},	// down arrow

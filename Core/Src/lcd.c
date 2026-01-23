@@ -83,7 +83,6 @@ void DelayMicroseconds(uint16_t us) {
 //**************************************************************************************************
 // Commands to LCD
 
-
 void LCD_Clear(uint16_t color) {
 
 	LCDWriteRegister(0x2A); // Column Address Set
