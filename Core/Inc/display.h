@@ -19,7 +19,7 @@
 //#endif
 
 // External global variable
-extern char G[48];
+extern char G[64];
 extern _Bool Annunc[19];
 extern uint32_t MainColourFore;
 extern uint32_t AuxColourFore;
@@ -43,6 +43,7 @@ void DisplayAnnunciators(void);
 
 // Settings suited for 400x960 TFT LCD (320x960 physical)
 #define Xpos_MAIN				182			// These are actually the Y position on the R6243 because LCD is rotated 90deg in use. Values in pixels.
+#define Ypos_MAIN				0			// start at far left
 #define Xpos_AUX				280
 #define Ypos_AUX				60
 #define Xpos_ANNUNC				150

@@ -29,6 +29,8 @@ uint32_t AuxColourFore = 0xFFFFFF;		// White
 uint32_t AnnunColourFore = 0x00FF00;	// Green
 uint32_t ColourBackground = 0x000000;	// Black
 uint32_t ColourBlackFore = 0x000000;	// Black
+uint32_t BackgroundColour = 0x000000;	// Black
+uint32_t AuxColourForeLS = 0xA0A0A0;	// Grey
 
 static void CheckDisplayStatus(void);
 
@@ -37,10 +39,15 @@ char MaindisplayString[19] = "";              // String for G[1] to G[18]
 _Bool displayBlank = false;
 _Bool displayBlankPrevious = false;
 
+extern volatile uint32_t dbg_loop_per_sec;
+
 // 6243 testing
 volatile int aux_dollarCount = 0;
 volatile uint16_t aux_dollarPositions[5] = { 0, 0, 0, 0, 0 };
 volatile char aux_string_dbg[30] = { 0 };
+
+// Diagnostics
+extern char AuxDiagString[30];
 
 
 
@@ -121,7 +128,7 @@ void DisplayAux() {
 	SetTextColors(AuxColourFore, ColourBackground); // Foreground, Background
 
 	char AuxdisplayString[30] = "";						// String for G[19] to G[47]
-	
+
 	// Populate AuxdisplayString from G[19] to G[47]
 	for (int i = 19; i <= 47; i++) {
 		AuxdisplayString[i - 19] = G[i];
@@ -148,7 +155,95 @@ void DisplayAux() {
 }
 
 
+void DisplayAuxTESTONLY() {
+
+	// AUX ROW text to LCD
+
+	SetTextColors(AuxColourFore, ColourBackground); // Foreground, Background
+
+	char AuxdisplayString[30] = "";						// Diagnostic string from main.c
+
+	strcpy(AuxdisplayString, AuxDiagString);
+
+	ConfigureFontAndPosition(
+		0b00,    // Internal CGROM
+		0b01,    // Font size
+		0b00,    // ISO 8859-1
+		0,       // Full alignment enabled
+		0,       // Chroma keying disabled
+		1,       // Rotate 90 degrees counterclockwise
+		0b01,    // Width multiplier
+		0b01,    // Height multiplier
+		5,       // Line spacing
+		0,       // Character spacing
+		Xpos_AUX,     // Cursor X
+		Ypos_AUX      // Cursor Y
+	);
+
+	DrawText(AuxdisplayString);
+
+}
+
+
+void DisplayAuxTESTONLY2() {
+
+	// AUX ROW text to LCD
+
+	SetTextColors(AuxColourFore, ColourBackground); // Foreground, Background
+
+	char AuxdisplayString[30] = "";						// String for G[19] to G[47]
+
+	// Populate AuxdisplayString from G[19] to G[47]
+	for (int i = 19; i <= 47; i++) {
+		AuxdisplayString[i - 19] = G[i];
+	}
+	AuxdisplayString[29] = '\0';						// Null-terminate at the 30th position because array starts at 0
+
+	// Validate AUX string
+	for (int i = 0; i < 29; i++) {
+
+		unsigned char c = (unsigned char)AuxdisplayString[i];
+
+		// Printable ASCII only
+		if (c < 0x20 || c > 0x7E) {
+			strcpy(AuxdisplayString, "AUX BAD CHAR");
+			break;
+		}
+	}
+
+	// Validate mode field at end of AUX line
+	if (
+		strncmp(&AuxdisplayString[25], "*DC ", 4) != 0 &&
+		strncmp(&AuxdisplayString[25], "*PLS", 4) != 0 &&
+		strncmp(&AuxdisplayString[25], " SWP", 4) != 0 &&
+		strncmp(&AuxdisplayString[25], " PSW", 4) != 0
+		)
+	{
+		strcpy(AuxdisplayString, "AUX MODE ERR");
+	}
+
+	ConfigureFontAndPosition(
+		0b00,    // Internal CGROM
+		0b01,    // Font size
+		0b00,    // ISO 8859-1
+		0,       // Full alignment enabled
+		0,       // Chroma keying disabled
+		1,       // Rotate 90 degrees counterclockwise
+		0b01,    // Width multiplier
+		0b01,    // Height multiplier
+		5,       // Line spacing
+		0,       // Character spacing
+		Xpos_AUX,     // Cursor X
+		Ypos_AUX      // Cursor Y
+	);
+
+	DrawText(AuxdisplayString);
+
+}
+
+
 //******************************************************************************
+
 
 void DisplayAnnunciators() {
 
@@ -182,9 +277,19 @@ void DisplayAnnunciators() {
 		900   // SRQ
 	};
 
+	uint8_t AnnuncSafe[19];
+
+	// Validate incoming annunciator data before drawing anything
+	for (int i = 0; i < 19; i++) {
+		if (Annunc[i] == 1)
+			AnnuncSafe[i] = 1;
+		else
+			AnnuncSafe[i] = 0;
+	}
+
 
 	for (int i = 0; i < 18; i++) {
-		if (Annunc[i + 1] == 1) {  // Turn the annunciator ON
+		if (AnnuncSafe[i + 1] == 1) {  // Turn the annunciator ON
 			SetTextColors(AnnunColourFore, ColourBackground); // Foreground: Green, Background: Black
 			ConfigureFontAndPosition(
 				0b00,    // Internal CGROM
@@ -223,6 +328,7 @@ void DisplayAnnunciators() {
 	}
 
 }
+
 
 //******************************************************************************
 
@@ -326,4 +432,58 @@ void DisplaySplash() {
 		}
 	}
 
+}
+
+
+// Write Cpu speed rating to the MAIN TFT.
+void DisplayCloneDeterminationMain(void)
+{
+	SetTextColors(MainColourFore, BackgroundColour);
+	ConfigureFontAndPosition(
+		0b00,    // Internal CGROM
+		0b10,    // Font size
+		0b00,    // ISO 8859-1
+		0,       // Full alignment enabled
+		0,       // Chroma keying disabled
+		1,       // Rotate 90 degrees counterclockwise
+		0b11,    // Width multiplier
+		0b11,    // Height multiplier
+		1,       // Line spacing
+		4,       // Character spacing
+		Xpos_MAIN,
+		Ypos_MAIN
+	);
+	char loopStr[32];
+
+	strcpy(loopStr, "LS=");
+	sprintf(&loopStr[strlen(loopStr)], "%lu", dbg_loop_per_sec);
+
+	DrawText(loopStr);
+}
+
+
+// Write Cpu speed rating to the AUX TFT.
+void DisplayCloneDeterminationAux(void)
+{
+	SetTextColors(AuxColourForeLS, BackgroundColour);
+	ConfigureFontAndPosition(
+		0b00,    // Internal CGROM
+		0b01,    // Font size
+		0b00,    // ISO 8859-1
+		0,       // Full alignment enabled
+		0,       // Chroma keying disabled
+		1,       // Rotate 90 degrees counterclockwise
+		0b01,    // Width multiplier
+		0b01,    // Height multiplier
+		5,       // Line spacing
+		0,       // Character spacing
+		Xpos_AUX,
+		Ypos_AUX
+	);
+	char loopStr[32];
+
+	strcpy(loopStr, "BluePill speed = ");
+	sprintf(&loopStr[strlen(loopStr)], "%lu", dbg_loop_per_sec);
+
+	DrawText(loopStr);
 }

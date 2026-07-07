@@ -72,7 +72,7 @@ char LCD_buffer_packets[128];  // For packet data
 char LCD_buffer_bitmaps[128];  // For decoded bitmap data
 char LCD_buffer_chars[128];    // For decoded characters
 
-char G[48];  // MAIN: G1 to G18, AUX: G19 to G47
+char G[64];  // MAIN: G1 to G18, AUX: G19 to G47, extra guard space
 _Bool Annunc[19]; // Annunciators re-ordered, 18off, G1 to G18 in left-to-right order
 _Bool AnnuncTemp[37]; // Temp array for annunciators. 18off, the order on LCD left to right = 8,7,6,5,4,3,2,1,18,17,16,15,14,13,12,11,10,9
 
@@ -108,6 +108,9 @@ volatile uint8_t SPI1_TX_completed_flag = 1;
 // Flag indicating finish of SPI start-up initialization
 volatile uint8_t Init_Completed_flag = 0;
 
+// Diagnostics
+char AuxDiagString[30] = "";
+
 /* Private function prototypes ------------------------------------------------------------------*/
 void SystemClock_Config(void);
 
@@ -133,7 +136,31 @@ uint32_t setting_LCD_HSPW;
 uint32_t setting_REFRESH_RATE;
 char setting_ADA_BUY[5];
 
+// BluePill clone determination/tests
+volatile uint32_t dbg_sysclk_hz = 0;
+volatile uint32_t dbg_hclk_hz = 0;
+volatile uint32_t dbg_pclk1_hz = 0;
+volatile uint32_t dbg_pclk2_hz = 0;
+volatile uint32_t dbg_clock_source = 0;
+volatile uint32_t dbg_hse_ready = 0;
+volatile uint32_t dbg_pll_ready = 0;
+volatile uint32_t dbg_loop_count = 0;
+volatile uint32_t dbg_loop_per_sec = 0;
+volatile uint32_t dbg_loop_last_ms = 0;
+volatile uint32_t dbg_loop_test_done = 0;
+
 //******************************************************************************
+
+
+// Diagnostics
+static char SafeDiagChar(char c)
+{
+	if (c < 0x20 || c > 0x7E)
+		return '?';
+
+	return c;
+}
+
 
 // Buffer to store the converted string representation of the main display line
 //char main_display_line[CHAR_COUNT + 1]; // +1 for null terminator
@@ -424,6 +451,11 @@ void Main_Aux(void) {
 		else if (i == 17) G[18] = ascii_char;
 	}
 
+	// Fill unused guard area with known pattern
+	for (int i = 48; i < 64; i++) {
+		G[i] = '#';
+	}
+
 	// Null-terminate the Main display debug string
 	main_display_debug[LINE1_LEN] = '\0';
 
@@ -478,6 +510,52 @@ void Main_Aux(void) {
 			bitmap[6]);
 	}
 
+	// Build continuous AUX diagnostic string for DisplayAux()
+	{
+		uint8_t guard_ok = 1;
+		uint8_t bad_main_char = 0;
+		uint8_t bad_aux_char = 0;
+
+		for (int i = 48; i < 64; i++) {
+			if (G[i] != '#') {
+				guard_ok = 0;
+				break;
+			}
+		}
+
+		for (int i = 1; i <= 18; i++) {
+			unsigned char c = (unsigned char)G[i];
+
+			if (c < 0x20 || c > 0x7E) {
+				bad_main_char = 1;
+				break;
+			}
+		}
+
+		for (int i = 19; i <= 47; i++) {
+			unsigned char c = (unsigned char)G[i];
+
+			if (c < 0x20 || c > 0x7E) {
+				bad_aux_char = 1;
+				break;
+			}
+		}
+
+		snprintf(AuxDiagString, sizeof(AuxDiagString),
+			"M:%c%c%c%c A:%c%c%c%c E:%u%u G:%u",
+			SafeDiagChar(G[15]),
+			SafeDiagChar(G[16]),
+			SafeDiagChar(G[17]),
+			SafeDiagChar(G[18]),
+			SafeDiagChar(G[44]),
+			SafeDiagChar(G[45]),
+			SafeDiagChar(G[46]),
+			SafeDiagChar(G[47]),
+			bad_main_char,
+			bad_aux_char,
+			guard_ok);
+	}
+
 	// Null-terminate the Aux display debug string
 	main_display_debug[LINE2_LEN] = '\0';
 }
@@ -495,6 +573,16 @@ int main(void) {
 	// Configure the system clock
 	SystemClock_Config();
 
+	// BluePill clone determination
+	dbg_sysclk_hz = HAL_RCC_GetSysClockFreq();
+	dbg_hclk_hz = HAL_RCC_GetHCLKFreq();
+	dbg_pclk1_hz = HAL_RCC_GetPCLK1Freq();
+	dbg_pclk2_hz = HAL_RCC_GetPCLK2Freq();
+	dbg_clock_source = __HAL_RCC_GET_SYSCLK_SOURCE();
+	dbg_hse_ready = __HAL_RCC_GET_FLAG(RCC_FLAG_HSERDY);
+	dbg_pll_ready = __HAL_RCC_GET_FLAG(RCC_FLAG_PLLRDY);
+	volatile uint32_t dbg_loop_test_done = 0;
+
 	// Initialize all configured peripherals (except bit-bang SPI for S7701S LCD glass)
 	MX_GPIO_Init();					// I/O pins
 	MX_DMA_Init();					// DMA1 Ch.2 & Ch.4
@@ -508,26 +596,26 @@ int main(void) {
 	HAL_GPIO_WritePin(LCD_SCK_Port, LCD_SCK_Pin, GPIO_PIN_RESET);		// CLK pin low
 
 	// Read pin B0 - Set colours for MAIN & AUX
-	if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == GPIO_PIN_SET) {
+	//if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == GPIO_PIN_SET) {
 		// B0 high
-		MainColourFore = 0xFFFFFF;		// WHite
-		AuxColourFore = 0xFFFF00;		// Yellow
-	}
-	else {
+	MainColourFore = 0xFFFFFF;		// WHite
+	AuxColourFore = 0xFFFF00;		// Yellow
+	//}
+	//else {
 		// B0 low
-		MainColourFore = 0xFFFF00;		// Yellow
-		AuxColourFore = 0xFFFFFF;		// White
-	}
+	// MainColourFore = 0xFFFF00;		// Yellow
+	//	AuxColourFore = 0xFFFFFF;		// White
+	//}
 
 	// Read pin B1 - Set colour for ANNUNCIATORS
-	if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET) {
+	//if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET) {
 		// B1 high
-		AnnunColourFore = 0x00FF00;		// Green
-	}
-	else {
+	AnnunColourFore = 0x00FF00;		// Green
+	//}
+	//else {
 		// B1 low
-		AnnunColourFore = 0x00FFFF;		// Cyan
-	}
+	//	AnnunColourFore = 0x00FFFF;		// Cyan
+	//}
 	
 	HardwareReset();				// Reset LT7680 - Pull LCM_RESET low for 100ms and wait
 
@@ -544,7 +632,35 @@ int main(void) {
 
 	ClearScreen();					// Again.....
 
-	// Read pin A12 - Enter timing changes on boot if DCV button held in during power up
+
+	// Determine delay to use for Delay_NonBlocking(n)
+	uint32_t DisplayDelay;
+
+	// LK1 on PB0
+	// PB0 HIGH = normal operation = 6
+	// PB0 LOW  = long delay operation = 50
+	if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == GPIO_PIN_SET)
+	{
+		DisplayDelay = 6;
+	}
+	else
+	{
+		DisplayDelay = 50;
+	}
+
+	// Determine delay type to use
+	// LK2 on PB1
+	// PB1 HIGH = Delay_NonBlocking()
+	// PB1 LOW  = HAL_Delay()
+	bool UseHalDelay = false;
+
+	if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_RESET)
+	{
+		UseHalDelay = true;
+	}
+
+
+	// Read pin A12 - Enter timing changes on boot if MODE button held in during power up
 	GPIO_PinState pinA12 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
 	if (pinA12 == GPIO_PIN_SET) {
 		timingModsOnBoot = true;
@@ -635,10 +751,13 @@ int main(void) {
 //**************************************************************************************************
 // Main loop initialize
 
+	RunBluePillSpeedTestOffline();	// BluePill speed test
+	ClearScreen();					// Again.....
+
 	Init_Completed_flag = 1; // Now is a safe time to enable the EXTI interrupt handler
 
 	while (1) {
-			
+
 		while (SPI1->SR & SPI_SR_BSY);					// Wait until any ongoing TFT SPI transfers are complete
 		SPI1->CR1 &= ~SPI_CR1_SPE;						// Disable the TFT SPI peripheral
 		DMA1_Channel3->CCR &= ~DMA_CCR_EN;				// Disable the TFT SPI DMA channels
@@ -658,7 +777,7 @@ int main(void) {
 		if (timer_flag && task_ready) {
 			timer_flag = 0;   // Clear the timer flag
 			task_ready = 0;   // Reset task-ready flag    
-			
+		
 			if (timingModsOnBoot == false) {
 
 				// Wait for SPI2 to finish any ongoing transfers
@@ -681,19 +800,11 @@ int main(void) {
 
 				DisplaySplash();
 
-				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
-
 				DisplayMain();
-
-				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 
 				DisplayAux();
 
-				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
-
 				DisplayAnnunciators();
-
-				Delay_NonBlocking(6);  // LT7680 - Wait ms in a non-blocking way				//HAL_Delay(6); // Allow the LT7680 sufficient processing time
 
 				// Right wipe to clear random pixels down the far right hand side - This may be required to run continiously
 				//DrawLine(0, 959, 399, 959, 0x00, 0x00, 0x00);	// far right hand vertical line, black, 1 pixel line. (this line hidden!)
@@ -712,7 +823,7 @@ int main(void) {
 				//DrawLine(0, 959, 399, 959, 0xFF, 0xFF, 0xFF);	// far right
 				//DrawLine(199, 0, 199, 959, 0xFF, 0x00, 0x00);	// centred on R6243 horizontally
 
-				Delay_NonBlocking(6);  // Wait 6ms in a non-blocking way
+				//Delay_NonBlocking(12);  // Wait 6ms in a non-blocking way
 
 				// Wait until SPI1 finishes any ongoing transactions
 				while (SPI1->SR & SPI_SR_BSY);
@@ -1048,6 +1159,50 @@ HAL_StatusTypeDef EEPROM_ErasePage(uint32_t address) {
 }
 
 
+void RunBluePillSpeedTestOffline(void)
+{
+	// BluePill clone determination/test - standalone loop speed test when no comms is available
+	// Loops per sec is displayed on the TFT for 2secs at boot.
+	// Examples: Good board = 1497606, bad board = TBA
+
+	dbg_loop_count = 0;
+	dbg_loop_per_sec = 0;
+	dbg_loop_test_done = 0;
+
+	uint32_t test_start_ms = HAL_GetTick();
+
+	while ((HAL_GetTick() - test_start_ms) < 1000)
+	{
+		dbg_loop_count++;
+	}
+
+	dbg_loop_per_sec = dbg_loop_count;
+	dbg_loop_test_done = 1;
+
+	DisplayCloneDeterminationAux();
+
+	HAL_Delay(2000);
+}
+
+
+void RunBluePillSpeedTestOnline(void)
+{
+	// BluePill clone determination/test - Loops per sec is displayed on the TFT for 2secs at boot. Examples: Good board = 43596, Bad board = 849
+	if (!dbg_loop_test_done)
+	{
+		dbg_loop_count++;
+		uint32_t loop_now = HAL_GetTick();
+		if ((loop_now - dbg_loop_last_ms) >= 1000)
+		{
+			dbg_loop_per_sec = dbg_loop_count;
+			dbg_loop_test_done = 1;     // stop further testing
+			DisplayCloneDeterminationAux();
+			HAL_Delay(2000);
+		}
+	}
+}
+
+
 // System Clock Configuration
 void SystemClock_Config(void) {
 	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
@@ -1088,7 +1243,6 @@ void Delay_NonBlocking(uint32_t delayMs) {
 		// Do nothing, just wait for time to pass
 	}
 }
-
 
 
 // This function is executed in case of error occurrence.

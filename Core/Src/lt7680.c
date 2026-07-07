@@ -355,8 +355,61 @@ void DrawTextChunks(char* text) {
 }
 
 
-// Draw text with FIFO checking
-void DrawText(const char* text) {
+// DrawText helper
+void WaitForLT7680Ready(void)
+{
+    uint32_t timeout = 100000;
+    uint8_t status;
+
+    do {
+        status = ReadStatus();          // STSR
+    } while ((status & (1 << 3)) && --timeout);
+}
+
+
+// Draw text with LT7680 busy checking - this version no longer requires delays between DrawText() calls
+void DrawText(const char* text)
+{
+    while (*text != '\0') {
+
+        // Wait until LT7680 core/text engine is idle
+        WaitForLT7680Ready();
+
+        WriteRegister(0x04);                // Register for writing text
+        WriteData((uint8_t)*text);          // Write each character
+
+        ++text;
+    }
+
+    // Wait until final character has completed
+    WaitForLT7680Ready();
+}
+
+
+// Draw text with FIFO checking - OLD
+void DrawText_better(const char* text) {
+    //WriteRegister(0xBA);       // Set the reads to the SPI Master Status Register
+
+    while (*text != '\0') {
+        WriteRegister(0xBA);                                    // Set the reads to the SPI Master Status Register
+        // Check the Tx FIFO Full Flag (Bit 6 of REG[BAh])
+        uint8_t Registerdata = ReadData();                      // Read the register value
+
+        // Wait until the FIFO is not full
+        while (Registerdata & (1 << 6)) {
+            WriteRegister(0xBA);                                // Set the reads to the SPI Master Status Register
+            Registerdata = ReadData();                          // Update the register value
+        }
+
+        WriteRegister(0x04);                                    // Register for writing text
+        WriteData((uint8_t)*text);                              // Write each character
+        ++text;                                                 // Move to the next character
+    }
+}
+
+
+// Draw text with FIFO checking - OLD
+void DrawText_old(const char* text) {
     //WriteRegister(0xBA);       // Set the reads to the SPI Master Status Register
     
     while (*text != '\0') {
