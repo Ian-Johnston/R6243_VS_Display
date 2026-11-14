@@ -1,14 +1,19 @@
-ADCMT/Advantest R6243/R6244 SMU TFT display upgrade - STM32 BluePill + LT7680A-R + 4.58" 320x960 TFT
+# ADCMT/Advantest R6243/R6244 SMU TFT display upgrade - STM32 BluePill + LT7680A-R + 4.58" 320x960 TFT
+
+![R6243 TFT display upgrade](Photos/R6243.png)
+
+This is the original **Visual Studio 2022 / VisualGDB** version. The **Visual Studio Code** version is here: [R6243_VSCODE_Display](https://github.com/Ian-Johnston/R6243_VSCODE_Display)
 
 My webpage:
 https://www.ianjohnston.com/index.php/conversions/video-blog-173-adcmt6243
 
-Interface with R6243 (VFD data sniffing):
-=========================================
+## Interface with R6243 (VFD data sniffing)
+```
 BluePill    Function
 PB11        VFD RESTART (EXTI, start of a display refresh cycle)
 PB13        VFD SCK
 PB15        VFD SDA
+```
 - One refresh cycle = 47 packets of 5 bytes (U4 shift register), one packet per 5x7 character cell.
 - Main line = 18 characters, Aux line = 29 characters.
 
@@ -18,8 +23,7 @@ Link / button options read at boot:
 - PA12: MODE button held during power-up = enter TFT timing selection. Timings are stored in the
   last Flash page (EEPROM emulation at 0x0800FC00).
 
-Display hardware:
-=================
+## Display hardware
 - Controller: Levetop LT7680A-R (128Mb built-in SDRAM), driven by STM32 SPI1 (PA4 CS, PA5 SCK, PA6 MISO, PA7 MOSI), reset on PB10.
 - TFT: EastRising ER-TFT4.58-1 / AUO 4.58", 320x960 visible, ST7701S driver, 18-bit RGB from the LT7680.
 - LT7680 canvas is 400x960 (LCD_XSIZE_TFT = 400). The first 80 columns (x = 0-79) are overscan and
@@ -28,9 +32,7 @@ Display hardware:
   Two init sets: AdaFruit_Init() ("AdaF", default) and BuyDisplay_Init() ("BuyD"), selected by the
   stored timing set.
 
-
-Fixes - November 2026 (random stuck pixels / edge pixels):
-==========================================================
+## Fixes - November 2026 (random stuck pixels / edge pixels)
 Same fixes as the 34401A and 3478A TFT projects.
 
 1. SDRAM auto-refresh was never enabled (main cause of random pixels) - lt7680.c SDRAM_Init_LT()
@@ -62,9 +64,7 @@ Same fixes as the 34401A and 3478A TFT projects.
    Not applicable here - the R6243 code has no WaitForTextReady(); text waits go through DrawText().
    (DrawText_better() and DrawText_old() in lt7680.c still poll REG[BAh] but are not used.)
 
-
-Notes for alignment (not changed):
-==================================
+## Notes for alignment (not changed)
 - TFT timings (VBPD, VFPD, VSPW, HBPD, HFPD, HSPW, refresh rate) are user-selectable from 6 sets in
   main.c (LCD_xxx_SETTINGS[]) and saved to Flash. Set 6 uses the BuyDisplay ST7701S init.
 - AdaFruit_Init() runs the ST7701S in DE mode (C3h = 0x02). BuyDisplay_Init() runs it in HV mode
@@ -80,3 +80,5 @@ Notes for alignment (not changed):
 - LCD_Hor_Ver_Timing() and LCD_Clear() in lcd.c are not used and do not apply to the ST7701S.
 
 Datasheets used: LT768x_DS_V42_ENG.pdf, LT768x_AP-Note_V12_ENG.pdf, ST7701S_Ver1.4.pdf.
+
+Ian.
