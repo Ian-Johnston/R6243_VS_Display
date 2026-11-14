@@ -738,21 +738,30 @@ int main(void) {
 		AdaFruit_Init(); // Default - Initialize AdaFruit driver
 	}
 
-	// Right wipe to clear random pixels down the far right hand side
-	DrawLine(0, 959, 399, 959, 0x00, 0x00, 0x00);	// far right hand vertical line, black, 1 pixel line. (this line hidden!)
-	DrawLine(0, 958, 399, 958, 0x00, 0x00, 0x00);	// (this line hidden!)
-	DrawLine(0, 957, 399, 957, 0x00, 0x00, 0x00);
-	DrawLine(0, 956, 399, 956, 0x00, 0x00, 0x00);
-	DrawLine(0, 955, 399, 955, 0x00, 0x00, 0x00);
-	DrawLine(0, 954, 399, 954, 0x00, 0x00, 0x00);
-	DrawLine(0, 953, 399, 953, 0x00, 0x00, 0x00);
-	DrawLine(0, 952, 399, 952, 0x00, 0x00, 0x00);
-	
+	// Right wipe to clear random pixels down the far right hand side - no longer needed (SDRAM refresh + Active Window fix)
+	// Re-enable if any edge pixels return.
+	//DrawLine(0, 959, 399, 959, 0x00, 0x00, 0x00);	// far right hand vertical line, black, 1 pixel line. (this line hidden!)
+	//DrawLine(0, 958, 399, 958, 0x00, 0x00, 0x00);	// (this line hidden!)
+	//DrawLine(0, 957, 399, 957, 0x00, 0x00, 0x00);
+	//DrawLine(0, 956, 399, 956, 0x00, 0x00, 0x00);
+	//DrawLine(0, 955, 399, 955, 0x00, 0x00, 0x00);
+	//DrawLine(0, 954, 399, 954, 0x00, 0x00, 0x00);
+	//DrawLine(0, 953, 399, 953, 0x00, 0x00, 0x00);
+	//DrawLine(0, 952, 399, 952, 0x00, 0x00, 0x00);
+
 //**************************************************************************************************
 // Main loop initialize
 
 	RunBluePillSpeedTestOffline();	// BluePill speed test
 	ClearScreen();					// Again.....
+
+	// TEMP TEST - 1 pixel white box around the visible 320x960 area to check alignment. Remove when done.
+	// Canvas is 400 wide but the first 80 columns are not on the glass, so the box starts at x = 80.
+	//DrawLine(80, 0, LCD_XSIZE_TFT - 1, 0, 0xFF, 0xFF, 0xFF);                                        // y = 0 edge
+	//DrawLine(80, LCD_YSIZE_TFT - 1, LCD_XSIZE_TFT - 1, LCD_YSIZE_TFT - 1, 0xFF, 0xFF, 0xFF);        // y = 959 edge
+	//DrawLine(80, 0, 80, LCD_YSIZE_TFT - 1, 0xFF, 0xFF, 0xFF);                                       // x = 80 edge
+	//DrawLine(LCD_XSIZE_TFT - 1, 0, LCD_XSIZE_TFT - 1, LCD_YSIZE_TFT - 1, 0xFF, 0xFF, 0xFF);         // x = 399 edge
+	// END TEMP TEST
 
 	Init_Completed_flag = 1; // Now is a safe time to enable the EXTI interrupt handler
 
